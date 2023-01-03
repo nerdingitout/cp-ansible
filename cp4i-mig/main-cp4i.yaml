@@ -1,0 +1,43 @@
+# This is the main ansible playbook for migrating CP4I components
+# Will focus on migrating different CP4I applications in different steps
+---
+- name: Migrate CP4I
+  hosts: localhost
+  gather_facts: false
+   vars:
+    project_name: "openshift-operators"
+  
+  tasks:
+  
+  - name: login to cluster using kubeadmin
+    shell: "oc login --token='<ADD-TOKEN-HERE>' --server='<ADD-SERVER-URL-HERE>' --insecure-skip-tls-verify=true" #replace with login token and server url
+  
+  - name: Verify login
+    shell: "oc whoami"
+    register: logged_in_user
+  
+  - name: Create CP4I namespace
+    k8s:
+      state: present  # State=present when you need to create new object
+      src: ./cp4i-yamls/cp4i-ns.yaml # Source file location, replace with raw file github link
+  
+  - name: Create Operator Group
+    k8s:
+      state: present  # State=present when you need to create new object
+      src: ./cp4i-yamls/operator-group.yaml # Source file location, replace with raw file github link
+  
+  - name: Create Subscription
+    k8s:
+      state: present # State=present when you need to create new object
+      src: ./cp4i-yamls/subscription.yaml # Source file location, replace with raw file github link
+  
+  - name: Validate Installation of an operator
+      shell: "oc get csv -n {{ project_name}} "
+  
+  - name: Restricting automatic updates with an approval strategy
+      shell: >
+      "subscriptions=$(oc get subscription -n {{ project_name }} -o name)
+      for subscription in ${subscriptions}; do
+      echo -n "${subscription} "
+      oc get ${subscription} -n $NAMESPACE -o json | jq '.spec.installPlanApproval'
+      done"
