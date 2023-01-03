@@ -19,17 +19,17 @@
   - name: Create CP4I namespace
     k8s:
       state: present  # State=present when you need to create new object
-      src: ./cp4i-yamls/cp4i-ns.yaml # Source file location, replace with raw file github link
+      src: https://raw.githubusercontent.com/nerdingitout/cp-ansible/main/cp4i-mig/cp4i-yamls/cp4i-ns.yaml # Source file location, replace with raw file github link
   
   - name: Create Operator Group
     k8s:
       state: present  # State=present when you need to create new object
-      src: ./cp4i-yamls/operator-group.yaml # Source file location, replace with raw file github link
+      src: https://raw.githubusercontent.com/nerdingitout/cp-ansible/main/cp4i-mig/cp4i-yamls/operator-group.yaml # Source file location, replace with raw file github link
   
   - name: Create Subscription
     k8s:
       state: present # State=present when you need to create new object
-      src: ./cp4i-yamls/subscription.yaml # Source file location, replace with raw file github link
+      src: https://raw.githubusercontent.com/nerdingitout/cp-ansible/main/cp4i-mig/cp4i-yamls/subscription.yaml # Source file location, replace with raw file github link
   
   - name: Validate Installation of an operator
       shell: "oc get csv -n {{ project_name}} "
