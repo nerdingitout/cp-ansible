@@ -4,45 +4,51 @@
 - name: Migrate CP4I
   hosts: localhost
   gather_facts: false
-   vars:
-    project_name: "openshift-operators"
+  vars:
+    project_name: "cp4i"
   
   tasks:
-  
+  - name: Clone a repo with separate git directory
+    ansible.builtin.git:
+      repo: https://github.com/nerdingitout/cp-ansible.git
+      dest: ./src
   - name: login to cluster using kubeadmin
     shell: "oc login --token='<ADD-TOKEN-HERE>' --server='<ADD-SERVER-URL-HERE>' --insecure-skip-tls-verify=true" #replace with login token and server url
-  
   - name: Verify login
     shell: "oc whoami"
     register: logged_in_user
     
-  - name: Create foundational services in ibm-common-services namespace
+  - name: Create cp4i namespace
     k8s:
       state: present  # State=present when you need to create new object
-      src: https://raw.githubusercontent.com/nerdingitout/cp-ansible/main/foundational-services/cp-foundational-service.yaml # Source file location, replace with raw file github link
+      src: './src/cp4i-mig/cp4i-yamls/cp4i-ns.yaml' # Source file location, replace with raw file github link
   
-  - name: Create CP4I namespace
+  - name: Enable IBM Cloud Operators Catalog
     k8s:
       state: present  # State=present when you need to create new object
-      src: https://raw.githubusercontent.com/nerdingitout/cp-ansible/main/cp4i-mig/cp4i-yamls/cp4i-ns.yaml # Source file location, replace with raw file github link
-  
-  - name: Create Operator Group
+      src: './src/foundational-services/ibm-operator-catalog.yaml' # Source file location, replace with raw file github link
+      
+  - name: Create foundational services in ibm-common-services & cp4i namespaces
     k8s:
       state: present  # State=present when you need to create new object
-      src: https://raw.githubusercontent.com/nerdingitout/cp-ansible/main/cp4i-mig/cp4i-yamls/operator-group.yaml # Source file location, replace with raw file github link
+      src: './src/cp4i-mig/cp4i-yamls/common-services-cp4i.yaml' # Source file location, replace with raw file github link
+      
+  - name: Create CP4I Operator Group
+    k8s:
+      state: present  # State=present when you need to create new object
+      src: './src/cp4i-mig/cp4i-yamls/operator-group.yaml' # Source file location, replace with raw file github link
   
-  - name: Create Subscription
+  - name: Create CP4I Subscription
     k8s:
       state: present # State=present when you need to create new object
-      src: https://raw.githubusercontent.com/nerdingitout/cp-ansible/main/cp4i-mig/cp4i-yamls/subscription.yaml # Source file location, replace with raw file github link
+      src: './src/cp4i-mig/cp4i-yamls/subscription.yaml' # Source file location, replace with raw file github link
   
   - name: Validate Installation of an operator
-      shell: "oc get csv -n {{ project_name}} "
+    shell: "oc get csv -n {{ project_name}} "
   
   - name: Restricting automatic updates with an approval strategy
-      shell: >
-      "subscriptions=$(oc get subscription -n {{ project_name }} -o name)
+    shell: >
       for subscription in ${subscriptions}; do
-      echo -n "${subscription} "
-      oc get ${subscription} -n $NAMESPACE -o json | jq '.spec.installPlanApproval'
-      done"
+        echo -n "${subscription} "
+        oc get ${subscription} -n $NAMESPACE -o json | jq '.spec.installPlanApproval'
+      done
