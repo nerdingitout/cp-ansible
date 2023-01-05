@@ -1,0 +1,14 @@
+# Step 2, add ibm operators catalog
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-operator-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: ibm-operator-catalog
+  publisher: IBM Content
+  sourceType: grpc
+  image: icr.io/cpopen/ibm-operator-catalog:v1.21-20220519.010116-1B80EE724
+  updateStrategy:
+    registryPoll:
+      interval: 45m
