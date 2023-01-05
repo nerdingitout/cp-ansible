@@ -1,0 +1,22 @@
+# Step 3, add ibm common services operator. this installs cloud pak foundational services and other operators in cp4i namespace and creates ibm-common-services namespace with the installed operators
+apiVersion: operators.coreos.com/v1alpha2
+kind: OperatorGroup
+metadata:
+  name: operatorgroup
+  namespace: cp4i
+spec:
+  targetNamespaces:
+  - cp4i
+
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ibm-common-service-operator
+  namespace: cp4i
+spec:
+  channel: v3
+  installPlanApproval: Automatic
+  name: ibm-common-service-operator
+  source: ibm-operator-catalog
+  sourceNamespace: openshift-marketplace
